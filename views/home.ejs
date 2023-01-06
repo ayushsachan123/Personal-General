@@ -1,0 +1,16 @@
+<%- include("partials/header") -%>
+<h1 style="color:lightcoral"><b><em><strong>Home</strong></em></b></h1>
+
+<header><h1 class="title">My Personal Journal</h1></header>
+<br>
+<p style="font-size:2.3rem;">To add Journal or write something Go to the addressbar and <b>type /compose.</b></p>
+<br>
+
+<% posts.forEach(function(post){ %>
+    <h1><%= post.title %></h1>
+    <p> <%= post.content.substring(0,100)+ "..." %>
+         <a href="/posts/<%= post.title %>" >Read more</a></p>
+    
+<% }) %>
+
+<%- include("partials/footer") -%>
