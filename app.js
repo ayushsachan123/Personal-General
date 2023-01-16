@@ -1,11 +1,9 @@
-//jshint esversion:6
-
 const express = require("express");
 const bodyParser = require("body-parser");
+const mongoose = require("mongoose");
 const _ = require("lodash");
 const ejs = require("ejs");
 
-const posts = [];
 const app = express();
 
 app.set('view engine', 'ejs');
@@ -13,10 +11,23 @@ app.set('view engine', 'ejs');
 app.use(bodyParser.urlencoded({extended: true}));
 app.use(express.static("public"));
 
+mongoose.set('strictQuery',false);
+mongoose.connect("mongodb+srv://AyushSachan:Ayush%40703a@cluster0.jczjymr.mongodb.net/BlogDB")
+
+const blogsSchema = {
+title: String,
+content: String
+};
+
+const Blog = mongoose.model("Blog",blogsSchema);
+
 app.get("/",function(req,res){
-  
-  res.render("home", {
-    posts : posts});
+
+  Blog.find({},function(err,foundBlogs){
+    res.render("home",{
+      posts:foundBlogs
+    });
+  });
  
 });
 
@@ -30,32 +41,40 @@ app.get("/contact",function(req,res){
 
 app.get("/compose",function(req,res){
   res.render("compose");
-
 });
-
 
 app.post("/compose",function(req,res){
 
-    const post = {
-        title:req.body.postTitle,
-        content:req.body.postBody
-    }; 
-    posts.push(post);
+       const gettitle = req.body.postTitle;
+       const getcontent = req.body.postBody;
+
+    const blog = new Blog({
+        title : gettitle,
+        content : getcontent
+    });
+
+    blog.save();
     res.redirect("/");
+    
 });
 
-app.get("/posts/:postName",function(req,res){
-   const param = _.lowerCase(req.params.postName);
+app.get("/posts/:postId",function(req,res){
 
-posts.forEach(function(post){
-  const storedtitle = _.lowerCase(post.title);
-  
-  if(param==storedtitle){
-    res.render("post",{
-      title : post.title,
-      content: post.content}); 
-   }
-})
+  const requestedPostId = req.params.postId;
+
+Blog.findOne({title : requestedPostId},function(err,found){
+  if(!err){
+    if(found){
+      res.render("post",{
+         title:found.title ,
+         content : found.content
+        });
+      }
+      else{
+        res.redirect("/");
+      }
+    }
+    });
 });
 
 app.listen(process.env.PORT || 3000,function(){
